@@ -6,13 +6,13 @@
 
 ## Summary
 
-Build a shared Android/iOS Products screen that loads the catalog from `GET https://fakestoreapi.com/products`, maps the response to a domain `Product`, and renders product imagery, title, category, and USD price. Keep the requested domain/data/presentation boundaries within the existing `shared` Gradle module, expose one Koin module per layer, and initialize the graph at the shared `App()` root. Provide initial loading/error/empty states, retry, and pull-to-refresh while retaining already displayed products after a refresh failure.
+Build a shared Android/iOS Products screen that loads the catalog from `GET https://fakestoreapi.com/products`, maps the response to a domain `Product`, and renders product imagery, title, category, and USD price. Include a "Products" top app bar and respect Android edge-to-edge system bars and iOS safe areas. Keep the requested domain/data/presentation boundaries within the existing `shared` Gradle module, expose one Koin module per layer, and initialize the graph at the shared `App()` root. Provide initial loading/error/empty states, retry, and pull-to-refresh while retaining already displayed products after a refresh failure.
 
 ## Technical Context
 
 **Language/Version**: Kotlin Multiplatform; Kotlin 2.4.21 from the existing version catalog.
 
-**Primary Dependencies**: Compose Multiplatform 1.12.2 and Material 3 1.9.0; add version-catalog-managed Ktor client core, content negotiation, kotlinx.serialization JSON, OkHttp and Darwin engines, Koin core/Compose/ViewModel integration, Coil 3 Compose, kotlinx-coroutines-test, Turbine, and Ktor MockEngine. Add the Kotlin serialization plugin using a version aligned with Kotlin.
+**Primary Dependencies**: Compose Multiplatform 1.12.2 and Material 3 1.9.0; add version-catalog-managed Ktor client core, content negotiation, kotlinx.serialization JSON, OkHttp and Darwin engines, Koin core/Compose/ViewModel integration, Coil 3 Compose and Ktor 3 network fetcher, kotlinx-coroutines-test, Turbine, and Ktor MockEngine. Add the Kotlin serialization plugin using a version aligned with Kotlin.
 
 **Storage**: None. Product data is loaded from the remote endpoint and is not persisted.
 
@@ -24,7 +24,7 @@ Build a shared Android/iOS Products screen that loads the catalog from `GET http
 
 **Performance Goals**: Render the initial loading state immediately; show the product list or terminal response state as soon as the request completes. No additional numeric network or rendering latency target is specified.
 
-**Constraints**: Internet access is required. No offline caching. Ktor engines are target-specific (OkHttp on Android, Darwin on iOS); shared code remains platform-neutral. Network failures become `Result` failures; cancellation must propagate. Keep unknown JSON fields ignorable. All versions must be declared in `gradle/libs.versions.toml`.
+**Constraints**: Internet access is required. No offline caching. Ktor engines are target-specific (OkHttp on Android, Darwin on iOS); shared code remains platform-neutral. Coil's Ktor 3 network fetcher must be available to the shared `AsyncImage` on both targets. The Android host enables edge-to-edge; Compose content must honor system-bar and safe-area insets, including the iOS host's safe areas. Network failures become `Result` failures; cancellation must propagate. Keep unknown JSON fields ignorable. All versions must be declared in `gradle/libs.versions.toml`.
 
 **Scale/Scope**: One unfiltered catalog request and one scrollable product list. No details, search, cart, pagination, or persistence. FakeStoreAPI product records contain the six requested fields; responses may also include extra fields such as `rating`.
 
@@ -101,6 +101,7 @@ shared/src/commonTest/kotlin/rw/kmp/product/
 └── presentation/         # ProductsViewModel state-transition tests (Turbine)
 
 androidApp/src/main/AndroidManifest.xml  # INTERNET permission
+androidApp/src/main/kotlin/rw/kmp/product/MainActivity.kt  # Android edge-to-edge host
 gradle/libs.versions.toml                # Centralized dependency/plugin versions
 shared/build.gradle.kts                  # Source-set dependencies
 ```
@@ -110,11 +111,13 @@ shared/build.gradle.kts                  # Source-set dependencies
 ## Design Decisions
 
 - Use `Product.id` as the stable lazy-list key.
+- Use a Material 3 top app bar titled "Products"; ensure shared screen content observes platform insets so the app bar and list remain clear of system bars and iOS safe areas.
 - Use the response fields `id`, `title`, `price`, `description`, `category`, and `image`; ignore unrelated fields such as the observed `rating` object.
 - Treat FakeStoreAPI prices as USD and format every price with a consistent USD symbol and two decimal places. The endpoint payload has no currency field.
 - Use `Loading`, `Success`, `Empty`, and `Error` for screen states. Model refresh status/failure as metadata on `Success`/`Empty`, preserving existing content if refresh fails; reserve `Error` for a failed initial load with retry.
 - `load()` performs initial loading and retry; `refresh()` performs refresh semantics. Both call the same use case, but preserve their distinct UI behavior.
 - Build one shared `HttpClient` in the data Koin module using a platform-provided engine and a shared `Json` configuration with `ignoreUnknownKeys = true`.
+- Include Coil's Ktor 3 network artifact so `AsyncImage` can fetch remote URLs, using the existing OkHttp and Darwin Ktor engines on their respective targets.
 - Translate HTTP/decoding failures into failed `Result`s in the data layer. Catch cancellation only to rethrow it; do not wrap suspending calls in `runCatching`.
 
 ## Complexity Tracking

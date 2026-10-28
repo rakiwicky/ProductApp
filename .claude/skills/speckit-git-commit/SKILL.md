@@ -1,35 +1,48 @@
 ---
 name: speckit-git-commit
-description: Auto-commit changes after a Spec Kit command completes
+description: "Review and manually commit changes, or auto-commit when explicitly enabled as a hook"
 compatibility: Requires spec-kit project structure with .specify/ directory
 metadata:
   author: spec-kit-core
   source: git:commands/speckit.git.commit.md
 ---
 
-# Auto-Commit Changes
+# Review and Commit Changes
 
-Automatically stage and commit all changes after a Spec Kit command completes.
+This command supports two modes:
 
-## Behavior
+## Manual invocation
 
-This command is invoked as a hook after (or before) core commands. It:
+When the user directly invokes `/speckit-git-commit` (without a hook event):
 
-1. Determines the event name from the hook context (e.g., if invoked as an `after_specify` hook, the event is `after_specify`; if `before_plan`, the event is `before_plan`)
-2. Checks `.specify/extensions/git/git-config.yml` for the `auto_commit` section
-3. Looks up the specific event key to see if auto-commit is enabled
-4. Falls back to `auto_commit.default` if no event-specific key exists
-5. Determines the commit message based on `commit_style` (see below)
-6. If enabled and there are uncommitted changes, runs `git add .` + `git commit`
+1. Inspect and summarize all staged, unstaged, and untracked changes. Include `git status --short --untracked-files=all`, `git diff --stat`, and `git diff --cached --stat`; also inspect relevant diff content before summarizing. Do not expose secret values in the summary.
+2. Propose a concise commit message based on the changes, or use a message supplied by the user.
+3. Use `ask_user` to show the proposed commit message and change summary, and ask the user to confirm committing **all** outstanding changes. Include an option to cancel.
+4. If the user cancels or declines, do not stage or change anything.
+5. After confirmation, stage all changes with `git add .` and commit with the approved message. Include the required `Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>` trailer unless the user explicitly asks to omit it.
+6. Pass the commit message to Git without interpolating repository-derived or user-provided text into a shell command. Use a quoted here-document with `git commit -F -` or another safe message-file mechanism.
+7. Verify the commit and report its hash and the remaining worktree status.
 
-## Commit Message Styles
+Do not enable or change automatic hook settings as part of a manual invocation. If inspection finds likely credentials or other sensitive material, do not commit; identify the affected paths without revealing secret values and ask the user how to proceed.
+
+## Hook invocation
+
+When invoked as a before/after Spec Kit hook with an event name (for example `after_tasks` or `before_plan`), preserve the existing automatic behavior:
+
+1. Check `.specify/extensions/git/git-config.yml` for the `auto_commit` section.
+2. Look up the event-specific enabled flag; fall back to `auto_commit.default` only when there is no event-specific setting.
+3. If disabled, exit without staging or committing.
+4. If enabled and changes exist, determine the commit message based on `commit_style` and run the matching auto-commit script.
+5. Automatic hook invocations do not prompt the user.
+
+## Commit Message Styles for Hooks
 
 Controlled by the `commit_style` key in `.specify/extensions/git/git-config.yml`:
 
 - **`fixed`** (default): use the per-command `message` if configured, otherwise a generic `[Spec Kit] Auto-commit <phase> <command>` message.
 - **`conventional`**: inspect the actual changes (`git diff` / `git status`) since the last commit and generate a single-line [Conventional Commit](https://www.conventionalcommits.org/) message (`type(scope): subject`, e.g. `feat: add OAuth specification` or `docs: update implementation plan`) that accurately summarizes the change. Write this message to a temporary file and pass the file's path to the script (see Execution below). The configured `message` values are ignored in this mode.
 
-## Execution
+## Hook execution
 
 Determine the event name from the hook that triggered this command, then run the script:
 

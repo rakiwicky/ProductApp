@@ -18,7 +18,7 @@
 
 **Purpose**: Add the dependencies and platform access required by the implementation.
 
-- [X] T001 Add version-catalog aliases and shared source-set dependencies for Ktor core/content negotiation/JSON/MockEngine, serialization plugin, OkHttp/Darwin engines, Koin core/Compose/ViewModel, Coil 3 Compose, kotlinx-coroutines-test, and Turbine in `gradle/libs.versions.toml` and `shared/build.gradle.kts`; apply the version-catalog serialization plugin to `shared/build.gradle.kts` and keep every version centralized and compatible with the existing Kotlin/Compose versions.
+- [X] T001 Add version-catalog aliases and shared source-set dependencies for Ktor core/content negotiation/JSON/MockEngine, serialization plugin, OkHttp/Darwin engines, Koin core/Compose/ViewModel, Coil 3 Compose and its Ktor 3 network fetcher, kotlinx-coroutines-test, and Turbine in `gradle/libs.versions.toml` and `shared/build.gradle.kts`; apply the version-catalog serialization plugin to `shared/build.gradle.kts` and keep every version centralized and compatible with the existing Kotlin/Compose versions.
 - [X] T002 [P] Add the Android `INTERNET` permission to `androidApp/src/main/AndroidManifest.xml`; do not add iOS permission configuration.
 
 ## Phase 2: Foundational (Blocking Prerequisites)
@@ -43,21 +43,22 @@
 
 > Write tests first and confirm they fail before implementing the behavior.
 
-- [ ] T006 [P] [US1] Write `GetProductsUseCase` success and failure delegation tests and a hand-written, reusable `FakeProductRepository` in `shared/src/commonTest/kotlin/rw/kmp/product/domain/usecase/GetProductsUseCaseTest.kt`; keep the fake visible to other common test packages.
-- [ ] T007 [P] [US1] Write DTO-to-domain field mapping and Ktor MockEngine repository success, HTTP-failure, invalid-response, and cancellation tests in `shared/src/commonTest/kotlin/rw/kmp/product/data/repository/ProductRepositoryImplTest.kt`.
-- [ ] T008 [US1] Write initial Loading-to-Success ViewModel state-flow tests using Turbine and `FakeProductRepository` in `shared/src/commonTest/kotlin/rw/kmp/product/presentation/products/ProductsViewModelTest.kt`; also write fixed two-decimal USD formatter tests in `shared/src/commonTest/kotlin/rw/kmp/product/presentation/products/ProductPriceFormatterTest.kt`.
+- [X] T006 [P] [US1] Write `GetProductsUseCase` success and failure delegation tests and a hand-written, reusable `FakeProductRepository` in `shared/src/commonTest/kotlin/rw/kmp/product/domain/usecase/GetProductsUseCaseTest.kt`; keep the fake visible to other common test packages.
+- [X] T007 [P] [US1] Write DTO-to-domain field mapping and Ktor MockEngine repository success, HTTP-failure, invalid-response, and cancellation tests in `shared/src/commonTest/kotlin/rw/kmp/product/data/repository/ProductRepositoryImplTest.kt`.
+- [X] T008 [US1] Write initial Loading-to-Success ViewModel state-flow tests using Turbine and `FakeProductRepository` in `shared/src/commonTest/kotlin/rw/kmp/product/presentation/products/ProductsViewModelTest.kt`; also write fixed two-decimal USD formatter tests in `shared/src/commonTest/kotlin/rw/kmp/product/presentation/products/ProductPriceFormatterTest.kt`.
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Define `Product` with required `id: Int`, `title: String`, `price: Double`, `description: String`, `category: String`, and `imageUrl: String` fields, and declare `ProductRepository.getProducts(): Result<List<Product>>` in `shared/src/commonMain/kotlin/rw/kmp/product/domain/model/Product.kt` and `shared/src/commonMain/kotlin/rw/kmp/product/domain/repository/ProductRepository.kt`.
-- [ ] T010 [US1] Implement `GetProductsUseCase` as a domain-only delegation to `ProductRepository` in `shared/src/commonMain/kotlin/rw/kmp/product/domain/usecase/GetProductsUseCase.kt`.
-- [ ] T011 [US1] Define `@Serializable ProductDto` with the six API fields (`id`, `title`, `price`, `description`, `category`, and `image`) and map `image` to `Product.imageUrl` in `shared/src/commonMain/kotlin/rw/kmp/product/data/dto/ProductDto.kt` and `shared/src/commonMain/kotlin/rw/kmp/product/data/mapper/ProductMapper.kt`.
-- [ ] T012 [US1] Implement `ProductApi` to request `GET https://fakestoreapi.com/products`, decode the JSON array using the shared `Json` configuration with `ignoreUnknownKeys = true`, and reject non-success responses in `shared/src/commonMain/kotlin/rw/kmp/product/data/network/ProductApi.kt` and `shared/src/commonMain/kotlin/rw/kmp/product/data/network/HttpClientFactory.kt`.
-- [ ] T013 [US1] Implement `ProductRepositoryImpl` to map DTOs to domain products and return transport/decoding failures as failed `Result`s while rethrowing `CancellationException` in `shared/src/commonMain/kotlin/rw/kmp/product/data/repository/ProductRepositoryImpl.kt`.
-- [ ] T014 [US1] Implement the single `ProductsUiState` flow and `ProductsViewModel.load()` initial Loading-to-Success path using only `GetProductsUseCase` in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsUiState.kt` and `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsViewModel.kt`.
-- [ ] T015 [US1] Implement the non-empty catalog screen with a stable-key `LazyColumn` keyed by product ID, Coil `AsyncImage` with a neutral unavailable-image fallback, two-line title truncation, category, initial `load()` callback, and formatted USD prices in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsScreen.kt`; implement deterministic USD formatting to two decimal places without JVM-only APIs in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductPriceFormatter.kt`.
-- [ ] T016 [US1] Register the domain use case, shared Ktor client and data repository, and Products ViewModel in one Koin module per layer in `shared/src/commonMain/kotlin/rw/kmp/product/domain/di/DomainModule.kt`, `shared/src/commonMain/kotlin/rw/kmp/product/data/di/DataModule.kt`, and `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/di/ProductsPresentationModule.kt`.
-- [ ] T017 [US1] Compose the three layer modules at the `App()` root, start the Koin Compose application with those modules, and render `ProductsScreen` in `shared/src/commonMain/kotlin/rw/kmp/product/di/AppModules.kt` and `shared/src/commonMain/kotlin/rw/kmp/product/App.kt`.
+- [X] T009 [US1] Define `Product` with required `id: Int`, `title: String`, `price: Double`, `description: String`, `category: String`, and `imageUrl: String` fields, and declare `ProductRepository.getProducts(): Result<List<Product>>` in `shared/src/commonMain/kotlin/rw/kmp/product/domain/model/Product.kt` and `shared/src/commonMain/kotlin/rw/kmp/product/domain/repository/ProductRepository.kt`.
+- [X] T010 [US1] Implement `GetProductsUseCase` as a domain-only delegation to `ProductRepository` in `shared/src/commonMain/kotlin/rw/kmp/product/domain/usecase/GetProductsUseCase.kt`.
+- [X] T011 [US1] Define `@Serializable ProductDto` with the six API fields (`id`, `title`, `price`, `description`, `category`, and `image`) and map `image` to `Product.imageUrl` in `shared/src/commonMain/kotlin/rw/kmp/product/data/dto/ProductDto.kt` and `shared/src/commonMain/kotlin/rw/kmp/product/data/mapper/ProductMapper.kt`.
+- [X] T012 [US1] Implement `ProductApi` to request `GET https://fakestoreapi.com/products`, decode the JSON array using the shared `Json` configuration with `ignoreUnknownKeys = true`, and reject non-success responses in `shared/src/commonMain/kotlin/rw/kmp/product/data/network/ProductApi.kt` and `shared/src/commonMain/kotlin/rw/kmp/product/data/network/HttpClientFactory.kt`.
+- [X] T013 [US1] Implement `ProductRepositoryImpl` to map DTOs to domain products and return transport/decoding failures as failed `Result`s while rethrowing `CancellationException` in `shared/src/commonMain/kotlin/rw/kmp/product/data/repository/ProductRepositoryImpl.kt`.
+- [X] T014 [US1] Implement the single `ProductsUiState` flow and `ProductsViewModel.load()` initial Loading-to-Success path using only `GetProductsUseCase` in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsUiState.kt` and `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsViewModel.kt`.
+- [X] T015 [US1] Implement the non-empty catalog screen with a stable-key `LazyColumn` keyed by product ID, Coil `AsyncImage` with the Ktor 3 network fetcher and a neutral unavailable-image fallback, two-line title truncation, category, initial `load()` callback, and formatted USD prices in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsScreen.kt`; implement deterministic USD formatting to two decimal places without JVM-only APIs in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductPriceFormatter.kt`.
+- [X] T016 [US1] Register the domain use case, shared Ktor client and data repository, and Products ViewModel in one Koin module per layer in `shared/src/commonMain/kotlin/rw/kmp/product/domain/di/DomainModule.kt`, `shared/src/commonMain/kotlin/rw/kmp/product/data/di/DataModule.kt`, and `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/di/ProductsPresentationModule.kt`.
+- [X] T017 [US1] Compose the three layer modules at the `App()` root, start the Koin Compose application with those modules, and render `ProductsScreen` in `shared/src/commonMain/kotlin/rw/kmp/product/di/AppModules.kt` and `shared/src/commonMain/kotlin/rw/kmp/product/App.kt`.
+- [ ] T018 [US1] Add a Material 3 top app bar titled "Products" and ensure the shared screen applies correct safe-area/system-bar insets on Android and iOS; retain or adjust Android `enableEdgeToEdge()` in `androidApp/src/main/kotlin/rw/kmp/product/MainActivity.kt` and verify the Compose iOS host in `shared/src/iosMain/kotlin/rw/kmp/product/MainViewController.kt`, implementing the shared layout in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsScreen.kt`.
 
 **Checkpoint**: A successful non-empty response is independently browsable with all product fields, stable item identity, image fallback, title truncation, and USD display.
 
@@ -71,12 +72,12 @@
 
 > Write tests first and confirm they fail before implementing the behavior.
 
-- [ ] T018 [US2] Add Turbine ViewModel tests for successful empty results, initial request failure, and retry succeeding to products or empty state in `shared/src/commonTest/kotlin/rw/kmp/product/presentation/products/ProductsViewModelTest.kt`.
+- [ ] T019 [US2] Add Turbine ViewModel tests for successful empty results, initial request failure, and retry succeeding to products or empty state in `shared/src/commonTest/kotlin/rw/kmp/product/presentation/products/ProductsViewModelTest.kt`.
 
 ### Implementation for User Story 2
 
-- [ ] T019 [US2] Extend `ProductsUiState` and `ProductsViewModel.load()` to emit Empty for a successful empty result and Error for initial failures while keeping retry on `load()` in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsUiState.kt` and `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsViewModel.kt`.
-- [ ] T020 [US2] Render the initial Loading indicator, Empty message, and clear Error message with a retry action wired to `ProductsViewModel.load()` in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsScreen.kt`.
+- [ ] T020 [US2] Extend `ProductsUiState` and `ProductsViewModel.load()` to emit Empty for a successful empty result and Error for initial failures while keeping retry on `load()` in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsUiState.kt` and `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsViewModel.kt`.
+- [ ] T021 [US2] Render the initial Loading indicator, Empty message, and clear Error message with a retry action wired to `ProductsViewModel.load()` in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsScreen.kt`.
 
 **Checkpoint**: Every initial request outcome is understandable and recoverable without changing the product-list behavior.
 
@@ -90,12 +91,12 @@
 
 > Write tests first and confirm they fail before implementing the behavior.
 
-- [ ] T021 [US3] Add Turbine ViewModel tests for refresh-in-progress, refresh-success replacing the current result, and refresh-failure preserving existing products with retryable feedback in `shared/src/commonTest/kotlin/rw/kmp/product/presentation/products/ProductsViewModelTest.kt`.
+- [ ] T022 [US3] Add Turbine ViewModel tests for refresh-in-progress, refresh-success replacing the current result, and refresh-failure preserving existing products with retryable feedback in `shared/src/commonTest/kotlin/rw/kmp/product/presentation/products/ProductsViewModelTest.kt`.
 
 ### Implementation for User Story 3
 
-- [ ] T022 [US3] Implement `ProductsViewModel.refresh()` so Success/Empty carries refresh progress, refresh success updates to the latest Success/Empty result, and refresh failure preserves existing content with an error message in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsUiState.kt` and `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsViewModel.kt`.
-- [ ] T023 [US3] Wrap the scrollable product content in Material 3 `PullToRefreshBox`, wire its refresh callback and progress state, and render refresh-failure feedback with a retry action calling `refresh()` without replacing visible products in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsScreen.kt`.
+- [ ] T023 [US3] Implement `ProductsViewModel.refresh()` so Success/Empty carries refresh progress, refresh success updates to the latest Success/Empty result, and refresh failure preserves existing content with an error message in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsUiState.kt` and `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsViewModel.kt`.
+- [ ] T024 [US3] Wrap the scrollable product content in Material 3 `PullToRefreshBox`, wire its refresh callback and progress state, and render refresh-failure feedback with a retry action calling `refresh()` without replacing visible products in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsScreen.kt`.
 
 **Checkpoint**: Refresh updates content on success and preserves the last successful content on failure.
 
@@ -103,10 +104,10 @@
 
 **Purpose**: Verify shared behavior on both targets and validate the documented end-to-end scenarios.
 
-- [ ] T024 Run `./gradlew :shared:testAndroidHostTest` and fix feature test failures in `shared/src/commonTest/kotlin/rw/kmp/product/`.
-- [ ] T025 Run `./gradlew :shared:iosSimulatorArm64Test` and fix iOS compilation/test failures in `shared/src/commonMain/kotlin/rw/kmp/product/` and `shared/src/iosMain/kotlin/rw/kmp/product/`.
-- [ ] T026 Run `./gradlew :androidApp:assembleDebug` and resolve feature integration or Android manifest failures in `shared/build.gradle.kts` and `androidApp/src/main/AndroidManifest.xml`.
-- [ ] T027 Run `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64` to validate the iOS framework and execute the available Android manual scenarios from `specs/002-browse-products/quickstart.md`; record that an end-to-end iOS app run requires an Xcode host project, which is not present in this repository.
+- [ ] T025 Run `./gradlew :shared:testAndroidHostTest` and fix feature test failures in `shared/src/commonTest/kotlin/rw/kmp/product/`.
+- [ ] T026 Run `./gradlew :shared:iosSimulatorArm64Test` and fix iOS compilation/test failures in `shared/src/commonMain/kotlin/rw/kmp/product/` and `shared/src/iosMain/kotlin/rw/kmp/product/`.
+- [ ] T027 Run `./gradlew :androidApp:assembleDebug` and resolve feature integration or Android manifest failures in `shared/build.gradle.kts` and `androidApp/src/main/AndroidManifest.xml`.
+- [ ] T028 Run `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64` to validate the iOS framework and execute the available Android manual scenarios from `specs/002-browse-products/quickstart.md`; record that an end-to-end iOS app run requires an Xcode host project, which is not present in this repository.
 
 ## Dependencies & Execution Order
 
@@ -137,7 +138,7 @@
 - **US1 tests**: T006 and T007 use separate test files and can be authored in parallel after setup/foundation. T008 follows T006 because it reuses `FakeProductRepository`.
 - **US1 implementation**: T009 establishes the domain model/interface before T010 and T011; T012 follows T011 and T003; T013 follows T010 and T012; UI/ViewModel/DI integration follows their required domain/data contracts.
 - **US2 and US3**: Test authoring is separate from implementation, but both stories intentionally follow US1 to avoid conflicts in the shared screen and state-flow files.
-- **Polish**: Run T024–T027 after implementation; do not make competing source fixes in parallel across target validation.
+- **Polish**: Run T025–T028 after implementation; do not make competing source fixes in parallel across target validation.
 
 ## Parallel Example: User Story 1
 

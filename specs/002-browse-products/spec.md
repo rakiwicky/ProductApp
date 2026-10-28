@@ -23,6 +23,7 @@ As a shopper, I want to browse a list of products with their key information so 
 1. **Given** products are available, **When** the screen opens and loading completes, **Then** the user sees a list with an image, title, category, and price for each product.
 2. **Given** a product title exceeds two lines, **When** its product is displayed, **Then** the title is truncated at two lines.
 3. **Given** multiple products have prices, **When** they are displayed, **Then** all prices follow the same store currency and formatting conventions.
+4. **Given** the Products screen is open, **When** the user views the screen, **Then** a top app bar identifies the screen as "Products" and the content respects the platform's safe areas while drawing edge-to-edge.
 
 ### User Story 2 - Understand loading and empty results (Priority: P2)
 
@@ -75,6 +76,7 @@ As a shopper, I want to refresh the product list and retry after a load failure 
 - **FR-010**: If an image cannot be displayed, the system MUST retain the product's other information and show a neutral image placeholder.
 - **FR-011**: If a refresh fails while products are visible, the system MUST retain the visible products, communicate the refresh failure, and allow another retry.
 - **FR-012**: The screen MUST NOT include product details, search, cart functionality, or offline caching as part of this feature.
+- **FR-013**: The screen MUST show a top app bar titled "Products" and lay out the app bar and screen content correctly with edge-to-edge system bars and platform safe areas on Android and iOS.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -91,6 +93,7 @@ As a shopper, I want to refresh the product list and retry after a load failure 
 - **SC-004**: A user can initiate catalog refresh with one pull-down gesture, and the completed result is reflected on the screen.
 - **SC-005**: In 100% of displayed product prices, the store currency and formatting conventions are consistent.
 - **SC-006**: At least 90% of representative shoppers can identify a product's title, category, and price from the product list without assistance.
+- **SC-007**: On Android and iOS, the "Products" app bar and product content remain legible and unobscured when system bars or device safe areas overlap the app window.
 
 ## Assumptions
 

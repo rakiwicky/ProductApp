@@ -27,10 +27,10 @@
 
 ### Product image loading and refresh interaction
 
-- **Decision**: Render remote images with Coil 3 `AsyncImage`, with a neutral error/fallback painter and product-aware accessibility text. Wrap the stable-key `LazyColumn` in Material 3 `PullToRefreshBox`.
-- **Rationale**: Coil recommends `AsyncImage` for constrained Compose content and supports placeholder/error painters. Material 3's pull-to-refresh box takes `isRefreshing` and an `onRefresh` callback around scrollable content.
-- **Alternatives considered**: Load images manually or use a custom drag detector. These duplicate image/network or gesture handling and do not improve the stated requirements.
-- **References**: [Coil Compose](https://coil-kt.github.io/coil/compose/), [Material 3 pull to refresh](https://developer.android.com/develop/ui/compose/components/pull-to-refresh).
+- **Decision**: Render remote images with Coil 3 `AsyncImage` and include Coil's `coil-network-ktor3` artifact, with the existing OkHttp and Darwin engines providing platform networking. Keep a neutral error/fallback painter and product-aware accessibility text. Wrap the stable-key `LazyColumn` in Material 3 `PullToRefreshBox`.
+- **Rationale**: Coil 3 does not include network URL support by default; Compose alone only supplies the UI integration. The Ktor 3 network artifact adds a cross-platform network fetcher. Coil recommends `AsyncImage` for constrained Compose content and supports placeholder/error painters. Material 3's pull-to-refresh box takes `isRefreshing` and an `onRefresh` callback around scrollable content.
+- **Alternatives considered**: Load images manually, use a platform-specific network fetcher, or use a custom drag detector. These duplicate image/network or gesture handling and do not improve the stated requirements.
+- **References**: [Coil network images](https://coil-kt.github.io/coil/network/), [Coil Compose](https://coil-kt.github.io/coil/compose/), [Material 3 pull to refresh](https://developer.android.com/develop/ui/compose/components/pull-to-refresh).
 
 ### Refresh failure state representation
 
