@@ -6,6 +6,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import productapp.shared.generated.resources.Res
+import productapp.shared.generated.resources.products_load_error
 import rw.kmp.product.domain.usecase.GetProductsUseCase
 
 class ProductsViewModel(
@@ -20,7 +22,7 @@ class ProductsViewModel(
             val result = getProducts()
             _uiState.value = result.fold(
                 onSuccess = { ProductsUiState.Success(it) },
-                onFailure = { ProductsUiState.Error("Unable to load products.") },
+                onFailure = { ProductsUiState.Error(Res.string.products_load_error) },
             )
         }
     }

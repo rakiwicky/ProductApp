@@ -1,8 +1,14 @@
 package rw.kmp.product.presentation.products
 
+import org.jetbrains.compose.resources.StringResource
+import productapp.shared.generated.resources.Res
+import productapp.shared.generated.resources.products_title
 import rw.kmp.product.domain.model.Product
 
 sealed interface ProductsUiState {
+    val title: StringResource
+        get() = Res.string.products_title
+
     data object Loading : ProductsUiState
 
     data class Success(
@@ -10,6 +16,6 @@ sealed interface ProductsUiState {
     ) : ProductsUiState
 
     data class Error(
-        val message: String,
+        val message: StringResource,
     ) : ProductsUiState
 }

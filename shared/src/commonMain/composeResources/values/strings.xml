@@ -1,0 +1,4 @@
+<resources>
+    <string name="products_title">Products</string>
+    <string name="products_load_error">Unable to load products.</string>
+</resources>

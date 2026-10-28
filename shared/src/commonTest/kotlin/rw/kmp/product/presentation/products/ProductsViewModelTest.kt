@@ -8,6 +8,9 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import productapp.shared.generated.resources.Res
+import productapp.shared.generated.resources.products_load_error
+import productapp.shared.generated.resources.products_title
 import rw.kmp.product.domain.model.Product
 import rw.kmp.product.domain.usecase.FakeProductRepository
 import rw.kmp.product.domain.usecase.GetProductsUseCase
@@ -42,6 +45,44 @@ class ProductsViewModelTest {
                 assertEquals(1, repository.calls)
                 cancelAndIgnoreRemainingEvents()
             }
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun loadingStateExposesProductsTitleResource() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        try {
+            val viewModel = ProductsViewModel(
+                GetProductsUseCase(
+                    FakeProductRepository(Result.success(listOf(product))),
+                ),
+            )
+
+            assertEquals(Res.string.products_title, viewModel.uiState.value.title)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun errorStateExposesLoadErrorResource() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        try {
+            val viewModel = ProductsViewModel(
+                GetProductsUseCase(
+                    FakeProductRepository(Result.failure(IllegalStateException("offline"))),
+                ),
+            )
+
+            viewModel.load()
+            runCurrent()
+
+            val errorState = viewModel.uiState.value as ProductsUiState.Error
+            assertEquals(Res.string.products_load_error, errorState.message)
         } finally {
             Dispatchers.resetMain()
         }
