@@ -27,9 +27,9 @@
 
 **⚠️ CRITICAL**: Complete these tasks before user-story data networking work.
 
-- [ ] T003 Declare the platform HTTP engine factory in `shared/src/commonMain/kotlin/rw/kmp/product/data/network/PlatformHttpClientEngine.kt` without exposing a platform engine type outside the data/network boundary.
-- [ ] T004 [P] Implement the Android HTTP engine factory with OkHttp in `shared/src/androidMain/kotlin/rw/kmp/product/data/network/PlatformHttpClientEngine.android.kt`.
-- [ ] T005 [P] Implement the iOS HTTP engine factory with Darwin in `shared/src/iosMain/kotlin/rw/kmp/product/data/network/PlatformHttpClientEngine.ios.kt`.
+- [X] T003 Declare the platform HTTP engine factory in `shared/src/commonMain/kotlin/rw/kmp/product/data/network/PlatformHttpClientEngine.kt` without exposing a platform engine type outside the data/network boundary.
+- [X] T004 [P] Implement the Android HTTP engine factory with OkHttp in `shared/src/androidMain/kotlin/rw/kmp/product/data/network/PlatformHttpClientEngine.android.kt`.
+- [X] T005 [P] Implement the iOS HTTP engine factory with Darwin in `shared/src/iosMain/kotlin/rw/kmp/product/data/network/PlatformHttpClientEngine.ios.kt`.
 
 **Checkpoint**: Platform-specific HTTP engines can be selected without importing platform APIs into `commonMain`.
 
