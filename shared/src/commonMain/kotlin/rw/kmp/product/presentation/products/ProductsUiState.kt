@@ -13,6 +13,13 @@ sealed interface ProductsUiState {
 
     data class Success(
         val products: List<Product>,
+        val isRefreshing: Boolean = false,
+        val refreshError: StringResource? = null,
+    ) : ProductsUiState
+
+    data class Empty(
+        val isRefreshing: Boolean = false,
+        val refreshError: StringResource? = null,
     ) : ProductsUiState
 
     data class Error(

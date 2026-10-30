@@ -12,12 +12,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -26,12 +32,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import productapp.shared.generated.resources.Res
+import productapp.shared.generated.resources.products_empty
+import productapp.shared.generated.resources.products_retry
 import rw.kmp.product.domain.model.Product
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,12 +54,32 @@ fun ProductsScreen(
         viewModel.load()
     }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val refreshError = when (uiState) {
+        is ProductsUiState.Success -> uiState.refreshError
+        is ProductsUiState.Empty -> uiState.refreshError
+        else -> null
+    }
+    val refreshErrorText = refreshError?.let { stringResource(it) }
+    val retryLabel = stringResource(Res.string.products_retry)
+    LaunchedEffect(refreshError) {
+        if (refreshErrorText != null) {
+            val result = snackbarHostState.showSnackbar(
+                message = refreshErrorText,
+                actionLabel = retryLabel,
+                duration = SnackbarDuration.Long,
+            )
+            if (result == SnackbarResult.ActionPerformed) viewModel.refresh()
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(uiState.title)) },
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { contentPadding ->
         when (val state = uiState) {
             ProductsUiState.Loading -> {
@@ -61,19 +91,39 @@ fun ProductsScreen(
                 }
             }
 
-            is ProductsUiState.Success -> ProductList(
-                products = state.products,
+            is ProductsUiState.Success -> PullToRefreshBox(
+                isRefreshing = state.isRefreshing,
+                onRefresh = viewModel::refresh,
                 modifier = Modifier.fillMaxSize().padding(contentPadding),
-            )
+            ) {
+                ProductList(
+                    products = state.products,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
 
-            is ProductsUiState.Error -> {
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(contentPadding),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(stringResource(state.message))
+            is ProductsUiState.Empty -> PullToRefreshBox(
+                isRefreshing = state.isRefreshing,
+                onRefresh = viewModel::refresh,
+                modifier = Modifier.fillMaxSize().padding(contentPadding),
+            ) {
+                // Scrollable container so the pull gesture works on the empty state too.
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    item {
+                        CenteredMessage(
+                            message = stringResource(Res.string.products_empty),
+                            modifier = Modifier.fillParentMaxSize(),
+                        )
+                    }
                 }
             }
+
+            is ProductsUiState.Error -> CenteredMessage(
+                message = stringResource(state.message),
+                modifier = Modifier.fillMaxSize().padding(contentPadding),
+                actionLabel = stringResource(Res.string.products_retry),
+                onAction = viewModel::load,
+            )
         }
     }
 }
@@ -141,6 +191,35 @@ private fun ProductRow(
                 text = formatUsdPrice(product.price),
                 style = MaterialTheme.typography.titleSmall,
             )
+        }
+    }
+}
+
+@Composable
+private fun CenteredMessage(
+    message: String,
+    modifier: Modifier = Modifier,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null,
+) {
+    Box(
+        modifier = modifier.padding(24.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+            )
+            if (actionLabel != null && onAction != null) {
+                Button(onClick = onAction) {
+                    Text(actionLabel)
+                }
+            }
         }
     }
 }

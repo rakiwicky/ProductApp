@@ -72,12 +72,12 @@
 
 > Write tests first and confirm they fail before implementing the behavior.
 
-- [ ] T019 [US2] Add Turbine ViewModel tests for successful empty results, initial request failure, and retry succeeding to products or empty state in `shared/src/commonTest/kotlin/rw/kmp/product/presentation/products/ProductsViewModelTest.kt`.
+- [X] T019 [US2] Add Turbine ViewModel tests for successful empty results, initial request failure, and retry succeeding to products or empty state in `shared/src/commonTest/kotlin/rw/kmp/product/presentation/products/ProductsViewModelTest.kt`.
 
 ### Implementation for User Story 2
 
-- [ ] T020 [US2] Extend `ProductsUiState` and `ProductsViewModel.load()` to emit Empty for a successful empty result and Error for initial failures while keeping retry on `load()` in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsUiState.kt` and `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsViewModel.kt`.
-- [ ] T021 [US2] Render the initial Loading indicator, Empty message, and clear Error message with a retry action wired to `ProductsViewModel.load()` in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsScreen.kt`.
+- [X] T020 [US2] Extend `ProductsUiState` and `ProductsViewModel.load()` to emit Empty for a successful empty result and Error for initial failures while keeping retry on `load()` in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsUiState.kt` and `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsViewModel.kt`.
+- [X] T021 [US2] Render the initial Loading indicator, Empty message, and clear Error message with a retry action wired to `ProductsViewModel.load()` in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsScreen.kt`.
 
 **Checkpoint**: Every initial request outcome is understandable and recoverable without changing the product-list behavior.
 
@@ -91,12 +91,12 @@
 
 > Write tests first and confirm they fail before implementing the behavior.
 
-- [ ] T022 [US3] Add Turbine ViewModel tests for refresh-in-progress, refresh-success replacing the current result, and refresh-failure preserving existing products with retryable feedback in `shared/src/commonTest/kotlin/rw/kmp/product/presentation/products/ProductsViewModelTest.kt`.
+- [X] T022 [US3] Add Turbine ViewModel tests for refresh-in-progress, refresh-success replacing the current result, and refresh-failure preserving existing products with retryable feedback in `shared/src/commonTest/kotlin/rw/kmp/product/presentation/products/ProductsViewModelTest.kt`.
 
 ### Implementation for User Story 3
 
-- [ ] T023 [US3] Implement `ProductsViewModel.refresh()` so Success/Empty carries refresh progress, refresh success updates to the latest Success/Empty result, and refresh failure preserves existing content with an error message in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsUiState.kt` and `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsViewModel.kt`.
-- [ ] T024 [US3] Wrap the scrollable product content in Material 3 `PullToRefreshBox`, wire its refresh callback and progress state, and render refresh-failure feedback with a retry action calling `refresh()` without replacing visible products in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsScreen.kt`.
+- [X] T023 [US3] Implement `ProductsViewModel.refresh()` so Success/Empty carries refresh progress, refresh success updates to the latest Success/Empty result, and refresh failure preserves existing content with an error message in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsUiState.kt` and `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsViewModel.kt`.
+- [X] T024 [US3] Wrap the scrollable product content in Material 3 `PullToRefreshBox`, wire its refresh callback and progress state, and render refresh-failure feedback with a retry action calling `refresh()` without replacing visible products in `shared/src/commonMain/kotlin/rw/kmp/product/presentation/products/ProductsScreen.kt`.
 
 **Checkpoint**: Refresh updates content on success and preserves the last successful content on failure.
 
@@ -104,10 +104,10 @@
 
 **Purpose**: Verify shared behavior on both targets and validate the documented end-to-end scenarios.
 
-- [ ] T025 Run `./gradlew :shared:testAndroidHostTest` and fix feature test failures in `shared/src/commonTest/kotlin/rw/kmp/product/`.
-- [ ] T026 Run `./gradlew :shared:iosSimulatorArm64Test` and fix iOS compilation/test failures in `shared/src/commonMain/kotlin/rw/kmp/product/` and `shared/src/iosMain/kotlin/rw/kmp/product/`.
-- [ ] T027 Run `./gradlew :androidApp:assembleDebug` and resolve feature integration or Android manifest failures in `shared/build.gradle.kts` and `androidApp/src/main/AndroidManifest.xml`.
-- [ ] T028 Run `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64` to validate the iOS framework and execute the available Android manual scenarios from `specs/002-browse-products/quickstart.md`; record that an end-to-end iOS app run requires an Xcode host project, which is not present in this repository.
+- [X] T025 Run `./gradlew :shared:testAndroidHostTest` and fix feature test failures in `shared/src/commonTest/kotlin/rw/kmp/product/`.
+- [X] T026 Run `./gradlew :shared:iosSimulatorArm64Test` and fix iOS compilation/test failures in `shared/src/commonMain/kotlin/rw/kmp/product/` and `shared/src/iosMain/kotlin/rw/kmp/product/`.
+- [X] T027 Run `./gradlew :androidApp:assembleDebug` and resolve feature integration or Android manifest failures in `shared/build.gradle.kts` and `androidApp/src/main/AndroidManifest.xml`.
+- [X] T028 Run `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64` to validate the iOS framework, build the iOS host app in `iosApp/iosApp.xcodeproj`, and execute the manual scenarios from `specs/002-browse-products/quickstart.md`.
 
 ## Dependencies & Execution Order
 
