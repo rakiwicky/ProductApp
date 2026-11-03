@@ -1,6 +1,7 @@
 package rw.kmp.product.presentation.products
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,21 +44,24 @@ import productapp.shared.generated.resources.Res
 import productapp.shared.generated.resources.products_empty
 import productapp.shared.generated.resources.products_retry
 import rw.kmp.product.domain.model.Product
+import rw.kmp.product.navigation.NoOpProductNavigator
+import rw.kmp.product.navigation.ProductNavigator
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductsScreen(
     viewModel: ProductsViewModel = koinViewModel(),
+    navigator: ProductNavigator = NoOpProductNavigator(),
 ) {
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+    val state = viewModel.uiState.collectAsStateWithLifecycle().value
     LaunchedEffect(viewModel) {
         viewModel.load()
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val refreshError = when (uiState) {
-        is ProductsUiState.Success -> uiState.refreshError
-        is ProductsUiState.Empty -> uiState.refreshError
+    val refreshError = when (state) {
+        is ProductsUiState.Success -> state.refreshError
+        is ProductsUiState.Empty -> state.refreshError
         else -> null
     }
     val refreshErrorText = refreshError?.let { stringResource(it) }
@@ -76,12 +80,12 @@ fun ProductsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(uiState.title)) },
+                title = { Text(stringResource(state.title)) },
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { contentPadding ->
-        when (val state = uiState) {
+        when (val uiState = state) {
             ProductsUiState.Loading -> {
                 Box(
                     modifier = Modifier.fillMaxSize().padding(contentPadding),
@@ -92,22 +96,22 @@ fun ProductsScreen(
             }
 
             is ProductsUiState.Success -> PullToRefreshBox(
-                isRefreshing = state.isRefreshing,
+                isRefreshing = uiState.isRefreshing,
                 onRefresh = viewModel::refresh,
                 modifier = Modifier.fillMaxSize().padding(contentPadding),
             ) {
                 ProductList(
-                    products = state.products,
+                    products = uiState.products,
+                    onProductClick = viewModel::onProductClick,
                     modifier = Modifier.fillMaxSize(),
                 )
             }
 
             is ProductsUiState.Empty -> PullToRefreshBox(
-                isRefreshing = state.isRefreshing,
+                isRefreshing = uiState.isRefreshing,
                 onRefresh = viewModel::refresh,
                 modifier = Modifier.fillMaxSize().padding(contentPadding),
             ) {
-                // Scrollable container so the pull gesture works on the empty state too.
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     item {
                         CenteredMessage(
@@ -119,7 +123,7 @@ fun ProductsScreen(
             }
 
             is ProductsUiState.Error -> CenteredMessage(
-                message = stringResource(state.message),
+                message = stringResource(uiState.message),
                 modifier = Modifier.fillMaxSize().padding(contentPadding),
                 actionLabel = stringResource(Res.string.products_retry),
                 onAction = viewModel::load,
@@ -131,6 +135,7 @@ fun ProductsScreen(
 @Composable
 private fun ProductList(
     products: List<Product>,
+    onProductClick: (Product) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -143,6 +148,7 @@ private fun ProductList(
         ) { product ->
             ProductRow(
                 product = product,
+                onClick = { onProductClick(product) },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             )
         }
@@ -152,13 +158,14 @@ private fun ProductList(
 @Composable
 private fun ProductRow(
     product: Product,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val fallbackColor = MaterialTheme.colorScheme.surfaceVariant
     val fallbackPainter = remember(fallbackColor) { ColorPainter(fallbackColor) }
 
     Row(
-        modifier = modifier,
+        modifier = modifier.clickable(onClick = onClick),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
