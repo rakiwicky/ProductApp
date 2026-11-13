@@ -1,31 +1,49 @@
-This is a Kotlin Multiplatform project targeting Android, iOS.
+```md
+# ProductApp
 
-* [/iosApp](./iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+ProductApp is an experimental Kotlin Multiplatform (KMP) project built to explore shared app development for Android and iOS.
 
-* [/shared](./shared/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./shared/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./shared/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./shared/src/jvmMain/kotlin)
-    folder is the appropriate location.
+The app loads product data from a remote API, displays it in a searchable catalog, and allows users to view product details. The project focuses on reusing business logic, UI patterns, and navigation across platforms while keeping native app entry points for Android and iOS.
 
-### Running the apps
+## Tech Stack
+- Kotlin Multiplatform
+- Compose Multiplatform
+- Material 3
+- Koin
+- Ktor
+- Kotlin Serialization
+- Coil
 
-Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and options:
+## Features
+- Product listing
+- Search by title, category, or price
+- Pull-to-refresh
+- Loading, empty, and error states
+- Product detail screen
+- Shared navigation and state handling
 
-- Android app: `./gradlew :androidApp:assembleDebug`
-- iOS app: open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+## Project Structure
+```text
+ProductApp/
+├── androidApp/     # Android app
+├── iosApp/         # iOS app
+├── shared/         # Shared KMP code
+├── build.gradle.kts
+├── settings.gradle.kts
+├── README.md
+└── gradlew
+```
 
-### Running tests
+## Run
+### Android
+```bash
+./gradlew :androidApp:assembleDebug
+```
 
-Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
+### iOS
+Open the `iosApp` project in Xcode and run it there.
 
-- Android tests: `./gradlew :shared:testAndroidHostTest`
-- iOS tests: `./gradlew :shared:iosSimulatorArm64Test`
+## Purpose
+This project was created as a learning and experimentation exercise in Kotlin Multiplatform development, with a focus on code sharing and cross-platform app structure.
 
----
-
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+```
