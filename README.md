@@ -1,4 +1,3 @@
-```md
 # ProductApp
 
 ProductApp is an experimental Kotlin Multiplatform (KMP) project built to explore shared app development for Android and iOS.
@@ -45,5 +44,3 @@ Open the `iosApp` project in Xcode and run it there.
 
 ## Purpose
 This project was created as a learning and experimentation exercise in Kotlin Multiplatform development, with a focus on code sharing and cross-platform app structure.
-
-```
