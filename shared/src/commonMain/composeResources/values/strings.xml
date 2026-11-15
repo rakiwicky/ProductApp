@@ -1,0 +1,7 @@
+<resources>
+    <string name="products_title">Products</string>
+    <string name="products_load_error">Unable to load products.</string>
+    <string name="products_empty">No products available right now.</string>
+    <string name="products_retry">Retry</string>
+    <string name="products_refresh_error">Couldn't refresh products.</string>
+</resources>
