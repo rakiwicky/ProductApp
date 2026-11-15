@@ -20,9 +20,28 @@ class ProductsViewModel(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<ProductsUiState>(ProductsUiState.Loading)
     val uiState: StateFlow<ProductsUiState> = _uiState.asStateFlow()
+    private var allProducts: List<Product> = emptyList()
 
     fun onProductClick(product: Product) {
         navigator.openProductDetail(product)
+    }
+
+    fun onSearchChanged(query: String) {
+        val normalized = query.trim()
+        val filtered = if (normalized.isEmpty()) {
+            allProducts
+        } else {
+            allProducts.filter { product ->
+                product.title.contains(normalized, ignoreCase = true) ||
+                    product.category.contains(normalized, ignoreCase = true) ||
+                    product.price.toString().contains(normalized, ignoreCase = true)
+            }
+        }
+
+        _uiState.value = when {
+            filtered.isEmpty() -> ProductsUiState.Empty(searchQuery = normalized)
+            else -> ProductsUiState.Success(products = filtered, searchQuery = normalized)
+        }
     }
 
     /** Initial load and retry after an initial failure. */
@@ -30,7 +49,10 @@ class ProductsViewModel(
         viewModelScope.launch {
             _uiState.value = ProductsUiState.Loading
             _uiState.value = getProducts().fold(
-                onSuccess = ::contentState,
+                onSuccess = { products ->
+                    allProducts = products
+                    contentState(products)
+                },
                 onFailure = { ProductsUiState.Error(Res.string.products_load_error) },
             )
         }
@@ -51,7 +73,10 @@ class ProductsViewModel(
 
         viewModelScope.launch {
             _uiState.value = getProducts().fold(
-                onSuccess = ::contentState,
+                onSuccess = { products ->
+                    allProducts = products
+                    contentState(products)
+                },
                 onFailure = {
                     when (val previous = _uiState.value) {
                         is ProductsUiState.Success -> previous.copy(
@@ -69,6 +94,25 @@ class ProductsViewModel(
         }
     }
 
-    private fun contentState(products: List<Product>): ProductsUiState =
-        if (products.isEmpty()) ProductsUiState.Empty() else ProductsUiState.Success(products)
+    private fun contentState(products: List<Product>): ProductsUiState {
+        val currentQuery = (uiState.value as? ProductsUiState.Success)?.searchQuery
+            ?: (uiState.value as? ProductsUiState.Empty)?.searchQuery
+            ?: ""
+
+        val filtered = if (currentQuery.isBlank()) {
+            products
+        } else {
+            products.filter { product ->
+                product.title.contains(currentQuery, ignoreCase = true) ||
+                    product.category.contains(currentQuery, ignoreCase = true) ||
+                    product.price.toString().contains(currentQuery, ignoreCase = true)
+            }
+        }
+
+        return if (filtered.isEmpty()) {
+            ProductsUiState.Empty(searchQuery = currentQuery)
+        } else {
+            ProductsUiState.Success(products = filtered, searchQuery = currentQuery)
+        }
+    }
 }

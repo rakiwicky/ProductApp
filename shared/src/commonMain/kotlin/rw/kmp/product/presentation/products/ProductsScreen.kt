@@ -17,12 +17,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
@@ -95,29 +97,53 @@ fun ProductsScreen(
                 }
             }
 
-            is ProductsUiState.Success -> PullToRefreshBox(
-                isRefreshing = uiState.isRefreshing,
-                onRefresh = viewModel::refresh,
-                modifier = Modifier.fillMaxSize().padding(contentPadding),
-            ) {
-                ProductList(
-                    products = uiState.products,
-                    onProductClick = viewModel::onProductClick,
-                    modifier = Modifier.fillMaxSize(),
-                )
+            is ProductsUiState.Success -> {
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(contentPadding),
+                    verticalArrangement = Arrangement.Top,
+                ) {
+                    SearchField(
+                        query = uiState.searchQuery,
+                        onValueChange = viewModel::onSearchChanged,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                    )
+                    PullToRefreshBox(
+                        isRefreshing = uiState.isRefreshing,
+                        onRefresh = viewModel::refresh,
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        ProductList(
+                            products = uiState.products,
+                            onProductClick = viewModel::onProductClick,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                }
             }
 
-            is ProductsUiState.Empty -> PullToRefreshBox(
-                isRefreshing = uiState.isRefreshing,
-                onRefresh = viewModel::refresh,
-                modifier = Modifier.fillMaxSize().padding(contentPadding),
-            ) {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    item {
-                        CenteredMessage(
-                            message = stringResource(Res.string.products_empty),
-                            modifier = Modifier.fillParentMaxSize(),
-                        )
+            is ProductsUiState.Empty -> {
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(contentPadding),
+                    verticalArrangement = Arrangement.Top,
+                ) {
+                    SearchField(
+                        query = uiState.searchQuery,
+                        onValueChange = viewModel::onSearchChanged,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                    )
+                    PullToRefreshBox(
+                        isRefreshing = uiState.isRefreshing,
+                        onRefresh = viewModel::refresh,
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            item {
+                                CenteredMessage(
+                                    message = stringResource(Res.string.products_empty),
+                                    modifier = Modifier.fillParentMaxSize(),
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -130,6 +156,29 @@ fun ProductsScreen(
             )
         }
     }
+}
+
+@Composable
+private fun SearchField(
+    query: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onValueChange,
+        modifier = modifier,
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                TextButton(onClick = { onValueChange("") }) {
+                    Text("Clear")
+                }
+            }
+        },
+        singleLine = true,
+        placeholder = { Text("Search products") },
+        shape = RoundedCornerShape(12.dp),
+    )
 }
 
 @Composable

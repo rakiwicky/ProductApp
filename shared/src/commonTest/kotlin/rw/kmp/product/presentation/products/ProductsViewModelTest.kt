@@ -324,19 +324,65 @@ class ProductsViewModelTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun refreshIsIgnoredWhileAlreadyRefreshing() = runTest {
+    fun searchMatchesTitleCategoryAndPriceThenClearsToFullCatalog() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         try {
-            val repository = FakeProductRepository(Result.success(listOf(product)))
+            val repository = FakeProductRepository(Result.success(listOf(product, updatedProduct)))
             val viewModel = ProductsViewModel(GetProductsUseCase(repository))
+
             viewModel.load()
             runCurrent()
 
-            viewModel.refresh()
-            viewModel.refresh()
+            viewModel.onSearchChanged("bag")
+            assertEquals(
+                ProductsUiState.Success(products = listOf(product), searchQuery = "bag"),
+                viewModel.uiState.value,
+            )
+
+            viewModel.onSearchChanged("accessories")
+            assertEquals(
+                ProductsUiState.Success(products = listOf(product), searchQuery = "accessories"),
+                viewModel.uiState.value,
+            )
+
+            viewModel.onSearchChanged("12.5")
+            assertEquals(
+                ProductsUiState.Success(products = listOf(product), searchQuery = "12.5"),
+                viewModel.uiState.value,
+            )
+
+            viewModel.onSearchChanged("   ")
+            assertEquals(
+                ProductsUiState.Success(products = listOf(product, updatedProduct), searchQuery = ""),
+                viewModel.uiState.value,
+            )
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun searchWithNoMatchesShowsEmptyAndClearingRestoresCatalog() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        try {
+            val repository = FakeProductRepository(Result.success(listOf(product, updatedProduct)))
+            val viewModel = ProductsViewModel(GetProductsUseCase(repository))
+
+            viewModel.load()
             runCurrent()
 
-            assertEquals(2, repository.calls)
+            viewModel.onSearchChanged("zzz")
+            assertEquals(
+                ProductsUiState.Empty(searchQuery = "zzz"),
+                viewModel.uiState.value,
+            )
+
+            viewModel.onSearchChanged("")
+            assertEquals(
+                ProductsUiState.Success(products = listOf(product, updatedProduct), searchQuery = ""),
+                viewModel.uiState.value,
+            )
         } finally {
             Dispatchers.resetMain()
         }
