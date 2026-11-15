@@ -15,11 +15,13 @@ sealed interface ProductsUiState {
         val products: List<Product>,
         val isRefreshing: Boolean = false,
         val refreshError: StringResource? = null,
+        val searchQuery: String = "",
     ) : ProductsUiState
 
     data class Empty(
         val isRefreshing: Boolean = false,
         val refreshError: StringResource? = null,
+        val searchQuery: String = "",
     ) : ProductsUiState
 
     data class Error(
